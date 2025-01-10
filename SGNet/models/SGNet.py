@@ -2,6 +2,24 @@ from models.common import *
 import torch
 import torch.nn as nn
 
+class TransformerBlock(nn.Module):
+    def __init__(self, dim, num_heads, mlp_ratio=4.0, drop=0.0, attn_drop=0.0):
+        super(TransformerBlock, self).__init__()
+        self.norm1 = nn.LayerNorm(dim)
+        self.attn = nn.MultiheadAttention(embed_dim=dim, num_heads=num_heads, dropout=attn_drop, batch_first=True)
+        self.norm2 = nn.LayerNorm(dim)
+        self.mlp = nn.Sequential(
+            nn.Linear(dim, int(dim * mlp_ratio)),
+            nn.GELU(),
+            nn.Linear(int(dim * mlp_ratio), dim),
+            nn.Dropout(drop),
+        )
+
+    def forward(self, x):
+        x = x + self.attn(self.norm1(x), self.norm1(x), self.norm1(x))[0]
+        x = x + self.mlp(self.norm2(x))
+        return x
+
 class SGNet(nn.Module):
     def __init__(self, num_feats, kernel_size, scale):
         super(SGNet, self).__init__()
@@ -56,11 +74,17 @@ class SGNet(nn.Module):
         self.act = nn.LeakyReLU(negative_slope=0.2, inplace=True)
 
         self.gradNet = GCM(n_feats=num_feats,scale=scale)
+        self.transformer = TransformerBlock(dim=num_feats, num_heads=8, mlp_ratio=4.0)
 
     def forward(self, x):
         image, depth = x
 
         out_re, grad_d4 = self.gradNet(depth, image)
+
+        batch_size, channels, h, w = grad_d4.size()
+        grad_d4_flat = grad_d4.flatten(2).permute(0, 2, 1)
+        grad_d4_trans = self.transformer(grad_d4_flat)
+        grad_d4 = grad_d4_trans.permute(0, 2, 1).view(batch_size, channels, h, w)
 
         dp_in = self.act(self.conv_dp1(depth))
         dp1 = self.dp_rg1(dp_in)
