@@ -68,4 +68,4 @@ For training, testing scripts and inference, a `results` folder will be created.
 
 ## Acknowledgments
 
-- This implementation uses parts of the SGNet and Swin2SR architectures
+- This implementation uses parts of the [SGNet](https://github.com/yanzq95/SGNet) and [Swin2SR](https://github.com/mv-lab/swin2sr) architectures
