@@ -49,12 +49,21 @@ python train.py --scale 4 --batch_size 8 --epochs 100
 ```
 (Example of usage, you may change the arguments)
 
+### Inference
+
+To get inferences for a trained model:
+
+```bash
+python inference.py --scale 4 --pretrained_path ./checkpoints/x4_256.pth --dataset_dir ./datasets/Lu
+```
+(Example of usage, you may change the arguments)
+
 ### Tesing
 
 To test a trained model:
 
 ```bash
-python test.py --scale 4 --pretrained_path ./checkpoints/x16_256.pth --dataset_dir ./datasets/Lu
+python test.py --scale 4 --pretrained_path ./checkpoints/x4_256.pth --dataset_dir ./datasets/Lu
 ```
 (Example of usage, you may change the arguments)
 
